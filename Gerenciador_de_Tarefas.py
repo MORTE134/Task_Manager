@@ -66,8 +66,17 @@ class TaskManager:
 
     def mark_task_as_completed(self, task_id):
         cursor = self.conn.cursor()
-        # Muda o status da tarefa de 'Pendente' para 'Concluida'
-        cursor.execute('UPDATE tasks SET completed=1 WHERE id=?', task_id)
+        cursor.execute('SELECT completed FROM tasks WHERE id=?', task_id)
+        result = cursor.fetchone()
+
+        if result is not None:
+            current_status = result[0]
+            new_status = 1 if current_status == 0 else 0
+            cursor.execute('UPDATE tasks SET completed= ? WHERE id=?', (new_status, task_id))
+            self.conn.commit()
+            print('Tarefa marcada como Concluida' if new_status == 1 else 'Tarefa marcada como Pendente')
+        else:
+            print('Tarefa não encontrada')
 
     def close_connection(self):
         # Fecha a conecao com o banco de dados
